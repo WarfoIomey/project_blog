@@ -22,7 +22,7 @@ urlpatterns = [
     ),
     path(
         'category/<slug:category_slug>/',
-        views.CategoryPostListView.as_view(),
+        views.CategoryPostView.as_view(),
         name='category_posts',
     ),
     path(
@@ -32,7 +32,7 @@ urlpatterns = [
     ),
     path(
         'posts/<int:post_id>/edit/',
-        views.PostEditView.as_view(),
+        views.PostUpdateView.as_view(),
         name='edit_post'
     ),
     path(

@@ -74,7 +74,11 @@ class Post(PublishedAndCreatTimeModel):
 
     def __str__(self):
         return f'{self.title} - {self.created_at}'
-    
+
+    @property
+    def comment_count(self):
+        return self.comments.count()
+
     def get_absolute_url(self):
         return reverse('blog:index')
 

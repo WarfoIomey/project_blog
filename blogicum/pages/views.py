@@ -1,18 +1,6 @@
 from django.shortcuts import render
 
 
-def about(request):
-    """О проекте"""
-    template = 'pages/about.html'
-    return render(request, template)
-
-
-def rules(request):
-    """Правила"""
-    template = 'pages/rules.html'
-    return render(request, template)
-
-
 def page_not_found(request, exception):
     return render(request, 'pages/404.html', status=404)
 
