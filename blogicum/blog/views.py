@@ -4,12 +4,17 @@ from django.views.generic import (
 )
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic.list import MultipleObjectMixin
-from django.contrib.auth.models import User
 from django.urls import reverse_lazy, reverse
+from django.contrib.auth import get_user_model
 
 from .models import Post, Category, Comment
 from .forms import PostForm, UserForm, CommentForm
 from .utils import get_posts
+
+
+POSTS_PER_PAGE = 10
+
+User = get_user_model()
 
 
 class OnlyAuthorMixin(UserPassesTestMixin):
@@ -47,7 +52,7 @@ class PostListView(ListView):
 
     model = Post
     template_name = 'blog/index.html'
-    paginate_by = 10
+    paginate_by = POSTS_PER_PAGE
 
     def get_queryset(self):
         return get_posts()
@@ -57,7 +62,7 @@ class CategoryPostView(DetailView, MultipleObjectMixin):
     """Получение постов по категории"""
 
     model = Post
-    paginate_by = 10
+    paginate_by = POSTS_PER_PAGE
     slug_url_kwarg = 'category_slug'
     template_name = 'blog/category.html'
 
@@ -149,15 +154,15 @@ class PostDeleteView(PostEditMixin, DeleteView):
 
 
 class ProfileDetailView(
-    LoginRequiredMixin,
     DetailView,
     MultipleObjectMixin,
 ):
     """Обзор профиля"""
 
-    model = Post
-    paginate_by = 10
+    model = User
+    paginate_by = POSTS_PER_PAGE
     template_name = 'blog/profile.html'
+    form_class = UserForm
 
     def get_object(self):
         pass
@@ -172,6 +177,7 @@ class ProfileDetailView(
             **kwargs
         )
         context['profile'] = user
+        print(context)
         return context
 
 
