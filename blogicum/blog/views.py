@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 from django.views.generic import (
     CreateView, DeleteView, DetailView, ListView, UpdateView
 )
@@ -10,41 +10,12 @@ from django.contrib.auth import get_user_model
 from .models import Post, Category, Comment
 from .forms import PostForm, UserForm, CommentForm
 from .utils import get_posts
+from .mixins import PostEditMixin, CommentEditMixin
 
 
 POSTS_PER_PAGE = 10
 
 User = get_user_model()
-
-
-class OnlyAuthorMixin(UserPassesTestMixin):
-
-    def handle_no_permission(self):
-        return redirect('blog:post_detail', post_id=self.kwargs['post_id'])
-
-    def test_func(self):
-        object = self.get_object()
-        return object.author == self.request.user
-
-
-class PostEditMixin(OnlyAuthorMixin):
-    model = Post
-    template_name = 'blog/create.html'
-    pk_url_kwarg = 'post_id'
-    form_class = PostForm
-
-
-class CommentEditMixin(OnlyAuthorMixin):
-    model = Comment
-    template_name = 'blog/comment.html'
-    pk_url_kwarg = 'comment_id'
-    form_class = CommentForm
-
-    def get_success_url(self):
-        return reverse(
-            'blog:post_detail',
-            kwargs={'post_id': self.kwargs['post_id']}
-        )
 
 
 class PostListView(ListView):
@@ -153,31 +124,23 @@ class PostDeleteView(PostEditMixin, DeleteView):
         return context
 
 
-class ProfileDetailView(
-    DetailView,
-    MultipleObjectMixin,
-):
+class ProfileDetailView(ListView):
     """Обзор профиля"""
 
-    model = User
+    model = Post
     paginate_by = POSTS_PER_PAGE
     template_name = 'blog/profile.html'
-    form_class = UserForm
+    user = None
 
-    def get_object(self):
-        pass
+    def get_queryset(self):
+        self.user = get_object_or_404(User, username=self.kwargs['username'])
+        return Post.objects.select_related(
+            'location', 'author', 'category'
+        ).filter(author=self.user)
 
     def get_context_data(self, **kwargs):
-        user = get_object_or_404(User, username=self.kwargs['username'])
-        object_list = Post.objects.select_related(
-            'location', 'author', 'category'
-        ).filter(author=user)
-        context = super(ProfileDetailView, self).get_context_data(
-            object_list=object_list,
-            **kwargs
-        )
-        context['profile'] = user
-        print(context)
+        context = super().get_context_data(**kwargs)
+        context['profile'] = self.user
         return context
 
 
@@ -220,10 +183,6 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
 class CommentUpdateView(CommentEditMixin, UpdateView):
     """Изменение комментария"""
 
-    pass
-
 
 class CommentDeleteView(CommentEditMixin, DeleteView):
     """Удаление комментария"""
-
-    pass
