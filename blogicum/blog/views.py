@@ -29,7 +29,7 @@ class PostListView(ListView):
         return get_posts()
 
 
-class CategoryPostView(DetailView, MultipleObjectMixin):
+class CategoryPostView(ListView):
     """Получение постов по категории"""
 
     model = Post
@@ -37,17 +37,13 @@ class CategoryPostView(DetailView, MultipleObjectMixin):
     slug_url_kwarg = 'category_slug'
     template_name = 'blog/category.html'
 
-    def get_object(self):
-        pass
+    def get_queryset(self):
+        return get_posts().filter(
+            category__slug=self.kwargs['category_slug']
+        )
 
     def get_context_data(self, **kwargs):
-        object_list = get_posts().filter(
-            category__slug=self.kwargs.get('category_slug')
-        )
-        context = super(CategoryPostView, self).get_context_data(
-            object_list=object_list,
-            **kwargs
-        )
+        context = super().get_context_data(**kwargs)
         context['category'] = get_object_or_404(
             Category,
             slug=self.kwargs['category_slug'],
