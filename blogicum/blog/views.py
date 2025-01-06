@@ -3,7 +3,6 @@ from django.views.generic import (
     CreateView, DeleteView, DetailView, ListView, UpdateView
 )
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views.generic.list import MultipleObjectMixin
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth import get_user_model
 
